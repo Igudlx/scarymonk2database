@@ -4,21 +4,31 @@ module.exports = (req, res) => {
     return;
   }
 
-  const requiredSecret = process.env.CONFIG_SHARED_SECRET;
-  if (requiredSecret) {
-    const provided = req.headers['x-config-key'];
-    if (provided !== requiredSecret) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+  const sharedSecret = process.env.CONFIG_SHARED_SECRET;
+  const region = process.env.PHOTON_REGION;
+
+  if (!sharedSecret) {
+    res.status(500).json({
+      error: 'CONFIG_SHARED_SECRET is not configured'
+    });
+    return;
+  }
+
+  if (!region) {
+    res.status(500).json({
+      error: 'PHOTON_REGION is not configured'
+    });
+    return;
   }
 
   res.setHeader('Cache-Control', 'no-store');
+
   res.status(200).json({
     photonAppId: process.env.PHOTON_APP_ID || '',
     voiceAppId: process.env.PHOTON_VOICE_APP_ID || '',
     chatAppId: process.env.PHOTON_CHAT_APP_ID || '',
     playfabTitleId: process.env.PLAYFAB_TITLE_ID || '',
-    region: process.env.PHOTON_REGION || 'eu',
+    region: region,
+    configSharedSecret: sharedSecret
   });
 };
